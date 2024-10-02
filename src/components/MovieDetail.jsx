@@ -47,13 +47,16 @@ export default function MovieDetail({
 
   useEffect(
     function () {
+      const controller = new AbortController();
+
       async function getMovieDetails() {
         try {
           setIsLoading(true);
           const response = await fetch(
             `http://www.omdbapi.com/?apikey=${
               import.meta.env.VITE_API_KEY
-            }&i=${selectedId}`
+            }&i=${selectedId}`,
+            { signal: controller.signal }
           );
           const data = await response.json();
           setMovie(data);
@@ -64,8 +67,24 @@ export default function MovieDetail({
         }
       }
       getMovieDetails();
+
+      return () => {
+        controller.abort();
+      };
     },
     [selectedId]
+  );
+
+  useEffect(
+    function () {
+      if (!title) return;
+      document.title = `Movie | ${title}`;
+
+      return function () {
+        document.title = "usePopcorn";
+      };
+    },
+    [title]
   );
 
   return (

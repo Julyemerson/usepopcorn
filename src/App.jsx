@@ -35,8 +35,28 @@ export default function App() {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
 
+  function useDebounce(value, delay) {
+    const [debounceValue, setDebounceValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebounceValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debounceValue;
+  }
+
+  const debouncedQuery = useDebounce(query, 500);
+
   useEffect(
     function () {
+      const controller = new AbortController();
+
       async function fetchMovies() {
         try {
           setIsLoading(true);
@@ -44,7 +64,8 @@ export default function App() {
           const response = await fetch(
             `http://www.omdbapi.com/?apikey=${
               import.meta.env.VITE_API_KEY
-            }&s=${query}`
+            }&s=${debouncedQuery}`,
+            { signal: controller.signal }
           );
 
           if (!response.ok) {
@@ -57,7 +78,9 @@ export default function App() {
           }
           setMovies(data.Search);
         } catch (error) {
-          setError(error.message);
+          if (error.name !== "AbortError") {
+            setError(error.message);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -68,9 +91,17 @@ export default function App() {
         setError(null);
         return;
       }
-      fetchMovies();
+
+      if (debouncedQuery) {
+        fetchMovies();
+      }
+
+      return () => {
+        controller.abort();
+      };
     },
-    [query]
+
+    [debouncedQuery]
   );
 
   return (
