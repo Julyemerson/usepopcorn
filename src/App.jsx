@@ -16,7 +16,7 @@ export default function App() {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [query, setQuery] = useState("interstellar");
+  const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(null);
 
   function handleSelectMovie(id) {
@@ -91,6 +91,8 @@ export default function App() {
         setError(null);
         return;
       }
+
+      handleCloseMovie();
 
       if (debouncedQuery) {
         fetchMovies();

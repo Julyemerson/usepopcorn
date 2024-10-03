@@ -45,6 +45,20 @@ export default function MovieDetail({
     onCloseMovie();
   }
 
+  useEffect(() => {
+    function keypressCallback(event) {
+      if (event.code === "Escape") {
+        onCloseMovie();
+      }
+    }
+
+    document.addEventListener("keydown", keypressCallback);
+
+    return function () {
+      document.removeEventListener("keydown", keypressCallback);
+    };
+  }, [onCloseMovie]);
+
   useEffect(
     function () {
       const controller = new AbortController();
